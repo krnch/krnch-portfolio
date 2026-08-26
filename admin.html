@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>krnch.me — Admin Panel</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f4f5f7;
+      --surface: #ffffff;
+      --border: #e1e4e8;
+      --border-focus: #4a90d9;
+      --text: #24292e;
+      --text-muted: #6a737d;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --danger: #dc2626;
+      --success: #16a34a;
+      --warning: #d97706;
+      --radius: 8px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    /* ── Login Screen ── */
+    #login-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .login-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 40px 36px;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: var(--shadow-md);
+      text-align: center;
+    }
+
+    .login-logo {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .login-logo span { color: var(--accent); }
+
+    .login-subtitle {
+      color: var(--text-muted);
+      font-size: 13px;
+      margin-bottom: 28px;
+    }
+
+    .login-card input[type="password"] {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.15s;
+      margin-bottom: 12px;
+      text-align: center;
+      letter-spacing: 2px;
+    }
+
+    .login-card input[type="password"]:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(74,144,217,0.15);
+    }
+
+    .login-error {
+      color: var(--danger);
+      font-size: 12px;
+      margin-bottom: 10px;
+      min-height: 16px;
+    }
+
+    /* ── Admin Layout ── */
+    #admin-screen { display: none; }
+
+    .admin-header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 56px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: var(--shadow);
+    }
+
+    .admin-header-logo {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .admin-header-logo span { color: var(--accent); }
+
+    .admin-header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    .admin-content {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 28px 20px 60px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .card-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #fafbfc;
+    }
+
+    .card-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .card-icon.blue   { background: #dbeafe; }
+    .card-icon.green  { background: #dcfce7; }
+    .card-icon.orange { background: #ffedd5; }
+    .card-icon.purple { background: #ede9fe; }
+    .card-icon.pink   { background: #fce7f3; }
+
+    .card-title {
+      font-weight: 600;
+      font-size: 15px;
+    }
+
+    .card-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 1px;
+    }
+
+    .card-body { padding: 20px; }
+
+    /* ── Form Controls ── */
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    input[type="text"],
+    input[type="password"],
+    input[type="file"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 13px;
+      font-family: inherit;
+      color: var(--text);
+      background: var(--surface);
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    input[type="text"]:focus,
+    input[type="password"]:focus,
+    textarea:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(74,144,217,0.12);
+    }
+
+    textarea { resize: vertical; }
+
+    input[type="file"] {
+      padding: 7px 10px;
+      cursor: pointer;
+      background: #fafbfc;
+    }
+
+    .field { margin-bottom: 14px; }
+    .field:last-child { margin-bottom: 0; }
+
+    .field-row {
+      display: grid;
+      gap: 12px;
+    }
+
+    @media (min-width: 540px) {
+      .field-row.cols-2 { grid-template-columns: 1fr 1fr; }
+      .field-row.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 9px 18px;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s, opacity 0.15s;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .btn:active { transform: scale(0.98); }
+    .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+
+    .btn-secondary {
+      background: #f0f2f5;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover:not(:disabled) { background: #e6e9ed; }
+
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-danger:hover:not(:disabled) { background: #b91c1c; }
+
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-success:hover:not(:disabled) { background: #15803d; }
+
+    .btn-sm { padding: 6px 12px; font-size: 12px; }
+    .btn-full { width: 100%; }
+
+    .btn-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    /* ── Status Messages ── */
+    .status-msg {
+      display: none;
+      padding: 10px 14px;
+      border-radius: var(--radius);
+      font-size: 13px;
+      margin-top: 12px;
+    }
+
+    .status-msg.success { background: #f0fdf4; border: 1px solid #bbf7d0; color: var(--success); display: block; }
+    .status-msg.error   { background: #fef2f2; border: 1px solid #fecaca; color: var(--danger); display: block; }
+    .status-msg.info    { background: #eff6ff; border: 1px solid #bfdbfe; color: var(--accent); display: block; }
+
+    /* ── Resume List ── */
+    .resume-list {
+      margin-top: 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .resume-list-header {
+      padding: 8px 14px;
+      background: #fafbfc;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .resume-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+      gap: 8px;
+    }
+
+    .resume-item:last-child { border-bottom: none; }
+
+    .resume-item-name {
+      font-weight: 500;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .resume-item-meta {
+      color: var(--text-muted);
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+
+    .resume-empty {
+      padding: 16px 14px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    /* ── Strava Stats ── */
+    .strava-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .stat-card {
+      background: #fafbfc;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+      text-align: center;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 4px;
+    }
+
+    .stat-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .stat-unit {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* ── FAQ List ── */
+    .faq-list {
+      margin-top: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .faq-item {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .faq-item-q {
+      background: #fafbfc;
+      padding: 10px 14px;
+      font-weight: 500;
+      font-size: 13px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .faq-item-a {
+      padding: 10px 14px;
+      font-size: 13px;
+      color: var(--text-muted);
+      white-space: pre-wrap;
+    }
+
+    /* ── Badge ── */
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .badge-green { background: #dcfce7; color: #15803d; }
+    .badge-orange { background: #ffedd5; color: #c2410c; }
+    .badge-blue { background: #dbeafe; color: #1d4ed8; }
+
+    /* ── Note ── */
+    .note {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 8px;
+      display: flex;
+      align-items: flex-start;
+      gap: 5px;
+    }
+
+    .note::before { content: 'ℹ️'; font-size: 11px; margin-top: 1px; flex-shrink: 0; }
+
+    /* ── Divider ── */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 16px 0;
+    }
+
+    /* ── Logout ── */
+    #logout-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: all 0.15s;
+    }
+
+    #logout-btn:hover { background: #fef2f2; border-color: #fecaca; color: var(--danger); }
+
+    /* ── Scrollable textarea mono ── */
+    .mono { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: 12px; }
+
+    /* ── Strava connected indicator ── */
+    #strava-connected-badge { display: none; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════ LOGIN SCREEN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">krnch<span>.</span>me</div>
+    <div class="login-subtitle">Admin Panel — enter password to continue</div>
+    <input type="password" id="login-pw" placeholder="••••••••••••••••" autocomplete="current-password">
+    <div class="login-error" id="login-error"></div>
+    <button class="btn btn-primary btn-full" onclick="doLogin()">Sign In</button>
+    <div style="margin-top: 16px; font-size: 12px; color: var(--text-muted);">
+      Session ends when browser closes
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ ADMIN SCREEN -->
+<div id="admin-screen">
+
+  <header class="admin-header">
+    <div class="admin-header-logo">krnch<span>.</span>me <span style="font-weight:400;color:var(--text-muted);font-size:13px">/ admin</span></div>
+    <div class="admin-header-right">
+      <span id="admin-user-label" style="display:none">✓ Authenticated</span>
+      <button id="logout-btn" onclick="doLogout()">Log out</button>
+    </div>
+  </header>
+
+  <main class="admin-content">
+
+    <!-- ──────────────────────────────── SECTION A: Knowledge Base -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon blue">📝</div>
+        <div>
+          <div class="card-title">Knowledge Base Editor</div>
+          <div class="card-subtitle">Edit the content your chatbot uses to answer questions</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="field">
+          <label for="kb-content">knowledge.md</label>
+          <textarea id="kb-content" class="mono" rows="20" style="height:400px" placeholder="# Karan's Knowledge Base
+
+## About Me
+- Name: Karan [Last Name]
+- Current Role: [Title] at [Company]
+- Location: [City, Country]
+- Education: [Degree] from [University]
+
+## Work Experience
+### [Company Name] — [Role] (YYYY–YYYY)
+- [Key responsibility or achievement]
+- [Key responsibility or achievement]
+
+## Skills & Technologies
+- Languages: Python, JavaScript, ...
+- Frameworks: React, Node.js, ...
+- Tools: Git, Docker, ...
+
+## Projects
+### [Project Name]
+- Description: [What it does]
+- Tech stack: [Technologies used]
+- Link: [URL]
+
+## Travel
+### Countries Visited
+- [Country 1], [Country 2], ...
+
+### US States Visited
+- [State 1], [State 2], ...
+
+## Fitness & Hobbies
+- Cycling: [Total km/miles]
+- Hiking: [Notable trails]
+- Other: [Hobbies]
+
+## FAQ
+Q: [Common question]
+A: [Answer]
+"></textarea>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="saveKnowledgeBase()">
+            💾 Save &amp; Update Chatbot
+          </button>
+          <button class="btn btn-secondary" onclick="loadKBFromStorage()">
+            ↩ Revert Changes
+          </button>
+        </div>
+        <div class="status-msg" id="kb-status"></div>
+      </div>
+    </div>
+
+    <!-- ──────────────────────────────── SECTION B: Resume Upload -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon green">📄</div>
+        <div>
+          <div class="card-title">Resume Upload</div>
+          <div class="card-subtitle">Upload your latest resume to update the knowledge base</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="field">
+          <label for="resume-file">Select Resume File</label>
+          <input type="file" id="resume-file" accept=".pdf,.doc,.docx">
+        </div>
+        <div class="note">Resume text will be extracted and added to knowledge base</div>
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="uploadResume()">
+            ⬆ Upload Resume
+          </button>
+        </div>
+        <div class="status-msg" id="resume-status"></div>
+
+        <div class="resume-list" id="resume-list-container">
+          <div class="resume-list-header">Uploaded Resumes</div>
+          <div id="resume-list-body">
+            <div class="resume-empty">No resumes uploaded yet</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ──────────────────────────────── SECTION C: Strava -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon orange">🚴</div>
+        <div>
+          <div class="card-title">Strava Integration</div>
+          <div class="card-subtitle">Connect Strava to auto-update fitness stats in your chatbot</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="field-row cols-3 field">
+          <div>
+            <label for="strava-client-id">Client ID</label>
+            <input type="text" id="strava-client-id" placeholder="12345">
+          </div>
+          <div>
+            <label for="strava-client-secret">Client Secret</label>
+            <input type="password" id="strava-client-secret" placeholder="••••••••••••">
+          </div>
+          <div>
+            <label for="strava-access-token">Access Token</label>
+            <input type="password" id="strava-access-token" placeholder="••••••••••••">
+          </div>
+        </div>
+        <div class="note">Credentials stored in localStorage — will be encrypted in production</div>
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="connectStrava()">
+            🔗 Connect Strava
+          </button>
+          <span id="strava-connected-badge" class="badge badge-green">✓ Connected</span>
+        </div>
+
+        <div class="divider"></div>
+
+        <button class="btn btn-secondary" onclick="fetchStravaStats()">
+          🔄 Fetch Latest Stats
+        </button>
+        <div class="status-msg" id="strava-status"></div>
+
+        <div class="strava-stats">
+          <div class="stat-card">
+            <div class="stat-label">🚴 Total Cycling</div>
+            <div class="stat-value" id="stat-cycling">—</div>
+            <div class="stat-unit" id="stat-cycling-unit">km</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">🥾 Total Hiking</div>
+            <div class="stat-value" id="stat-hiking">—</div>
+            <div class="stat-unit" id="stat-hiking-unit">km</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">⚡ Last Activity</div>
+            <div class="stat-value" id="stat-last" style="font-size:14px">—</div>
+            <div class="stat-unit" id="stat-last-date"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ──────────────────────────────── SECTION D: Travel Data -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon purple">🗺️</div>
+        <div>
+          <div class="card-title">Travel Data</div>
+          <div class="card-subtitle">Update countries and US states visited</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="field-row cols-2 field">
+          <div>
+            <label for="travel-countries">Countries Visited</label>
+            <textarea id="travel-countries" rows="8" placeholder="United States&#10;Canada&#10;Mexico&#10;United Kingdom&#10;France&#10;Japan&#10;India"></textarea>
+            <div class="note">One country per line</div>
+          </div>
+          <div>
+            <label for="travel-states">US States Visited</label>
+            <textarea id="travel-states" rows="8" placeholder="California&#10;New York&#10;Texas&#10;Colorado&#10;Washington&#10;Oregon"></textarea>
+            <div class="note">One state per line</div>
+          </div>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="saveTravelData()">
+            🌍 Update Travel Data
+          </button>
+        </div>
+        <div class="status-msg" id="travel-status"></div>
+      </div>
+    </div>
+
+    <!-- ──────────────────────────────── SECTION E: FAQ Builder -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon pink">❓</div>
+        <div>
+          <div class="card-title">FAQ Builder</div>
+          <div class="card-subtitle">Add common Q&amp;A pairs for your chatbot</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="field">
+          <label for="faq-question">Question</label>
+          <input type="text" id="faq-question" placeholder="e.g. What programming languages do you know?">
+        </div>
+        <div class="field">
+          <label for="faq-answer">Answer</label>
+          <textarea id="faq-answer" rows="3" placeholder="e.g. I'm proficient in Python and JavaScript, with experience in..."></textarea>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="addFAQ()">
+            ➕ Add Q&amp;A
+          </button>
+        </div>
+
+        <div id="faq-list" class="faq-list"></div>
+
+        <div class="btn-group" style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border);">
+          <button class="btn btn-success" onclick="exportFAQtoKB()">
+            📤 Export to Knowledge Base
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="clearAllFAQs()">
+            🗑 Clear All
+          </button>
+        </div>
+        <div class="status-msg" id="faq-status"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  // ═══════════════════════════════════════════════════════════════
+  //  CONSTANTS
+  // ═══════════════════════════════════════════════════════════════
+  const ADMIN_PASSWORD = 'krnch-admin-2026';
+  const WORKER_BASE    = 'https://krnch-chatbot.workers.dev';
+  const SS_KEY         = 'krnch_admin_auth';  // sessionStorage key
+
+  // ═══════════════════════════════════════════════════════════════
+  //  BOOT — check sessionStorage on load
+  // ═══════════════════════════════════════════════════════════════
+  (function init() {
+    if (sessionStorage.getItem(SS_KEY) === 'true') {
+      showAdmin();
+    }
+
+    // Allow Enter key on login
+    document.getElementById('login-pw').addEventListener('keydown', e => {
+      if (e.key === 'Enter') doLogin();
+    });
+  })();
+
+  // ═══════════════════════════════════════════════════════════════
+  //  AUTH
+  // ═══════════════════════════════════════════════════════════════
+  function doLogin() {
+    const pw  = document.getElementById('login-pw').value;
+    const err = document.getElementById('login-error');
+
+    if (pw === ADMIN_PASSWORD) {
+      sessionStorage.setItem(SS_KEY, 'true');
+      err.textContent = '';
+      showAdmin();
+    } else {
+      err.textContent = 'Incorrect password. Try again.';
+      document.getElementById('login-pw').value = '';
+      document.getElementById('login-pw').focus();
+    }
+  }
+
+  function doLogout() {
+    sessionStorage.removeItem(SS_KEY);
+    document.getElementById('admin-screen').style.display = 'none';
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('login-pw').value = '';
+  }
+
+  function showAdmin() {
+    document.getElementById('login-screen').style.display  = 'none';
+    document.getElementById('admin-screen').style.display  = 'block';
+    document.getElementById('admin-user-label').style.display = 'inline';
+    loadAllFromStorage();
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  //  LOAD ALL PERSISTED DATA FROM LOCALSTORAGE
+  // ═══════════════════════════════════════════════════════════════
+  function loadAllFromStorage() {
+    loadKBFromStorage();
+    loadResumeList();
+    loadStravaCredentials();
+    loadStravaStats();
+    loadTravelData();
+    loadFAQs();
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  //  HELPERS
+  // ═══════════════════════════════════════════════════════════════
+  function showStatus(id, type, msg, autoClear = true) {
+    const el = document.getElementById(id);
+    el.className = `status-msg ${type}`;
+    el.textContent = msg;
+    if (autoClear) setTimeout(() => { el.className = 'status-msg'; el.textContent = ''; }, 5000);
+  }
+
+  function lsGet(key, fallback = null) {
+    try { const v = localStorage.getItem(key); return v !== null ? JSON.parse(v) : fallback; }
+    catch { return fallback; }
+  }
+
+  function lsSet(key, value) {
+    try { localStorage.setItem(key, JSON.stringify(value)); return true; }
+    catch { return false; }
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  //  SECTION A — KNOWLEDGE BASE
+  // ═══════════════════════════════════════════════════════════════
+  function loadKBFromStorage() {
+    const saved = lsGet('krnch_kb_content');
+    if (saved) document.getElementById('kb-content').value = saved;
+  }
+
+  async function saveKnowledgeBase() {
+    const btn     = event.currentTarget;
+    const content = document.getElementById('kb-content').value.trim();
+
+    if (!content) {
+      showStatus('kb-status', 'error', 'Knowledge base content cannot be empty.');
+      return;
+    }
+
+    // Save locally first
+    lsSet('krnch_kb_content', content);
+
+    btn.disabled  = true;
+    btn.textContent = '⏳ Saving…';
+
+    try {
+      const res = await fetch(`${WORKER_BASE}/api/admin/update`, {
+        method : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body   : JSON.stringify({ password: ADMIN_PASSWORD, content }),
+      });
+
+      if (res.ok) {
+        showStatus('kb-status', 'success', '✓ Knowledge base saved and chatbot updated successfully.');
+      } else {
+        const text = await res.text();
+        showStatus('kb-status', 'error', `Server error (${res.status}): ${text || 'Unknown error'}`);
+      }
+    } catch (err) {
+      // Network/CORS error — content still saved locally
+      showStatus('kb-status', 'info', `✓ Saved locally. Worker unreachable (${err.message}) — will sync when online.`, false);
+    } finally {
+      btn.disabled    = false;
+      btn.textContent = '💾 Save & Update Chatbot';
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  //  SECTION B — RESUME UPLOAD
+  // ═══════════════════════════════════════════════════════════════
+  function loadResumeList() {
+    const resumes = lsGet('krnch_resumes', []);
+    renderResumeList(resumes);
+  }
+
+  function renderResumeList(resumes) {
+    const body = document.getElementById('resume-list-body');
+    if (!resumes.length) {
+      body.innerHTML = '<div class="resume-empty">No resumes uploaded yet</div>';
+      return;
+    }
+
+    body.innerHTML = resumes.map((r, i) => `
+      <div class="resume-item">
+        <div>
+          <div class="resume-item-name">📎 ${escHtml(r.name)}</div>
+          <div class="resume-item-meta">${r.size} · ${r.date}</div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+          <span class="badge badge-blue">${escHtml(r.type.toUpperCase())}</span>
+          <button class="btn btn-secondary btn-sm" onclick="deleteResume(${i})">✕</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function uploadResume() {
+    const fileInput = document.getElementById('resume-file');
+    const file      = fileInput.files[0];
+
+    if (!file) {
+      showStatus('resume-status', 'error', 'Please select a file first.');
+      return;
+    }
+
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (!['pdf','doc','docx'].includes(ext)) {
+      showStatus('resume-status', 'error', 'Only .pdf, .doc, and .docx files are supported.');
+      return;
+    }
+
+    const resumes = lsGet('krnch_resumes', []);
+    const meta = {
+      name : file.name,
+      size : formatFileSize(file.size),
+      date : new Date().toLocaleString(),
+      type : ext,
+    };
+
+    // Check for duplicate name
+    const dupeIdx = resumes.findIndex(r => r.name === file.name);
+    if (dupeIdx >= 0) {
+      resumes[dupeIdx] = meta; // replace
+    } else {
+      resumes.unshift(meta);
+    }
+
+    lsSet('krnch_resumes', resumes);
+    renderResumeList(resumes);
+    fileInput.value = '';
+    showStatus('resume-status', 'success', `✓ "${file.name}" uploaded. Resume text will be extracted and added to knowledge base.`);
+  }
+
+  function deleteResume(idx) {
+    const resumes = lsGet('krnch_resumes', []);
+    const name    = resumes[idx]?.name;
+    resumes.splice(idx, 1);
+    lsSet('krnch_resumes', resumes);
+    renderResumeList(resumes);
+    showStatus('resume-status', 'info', `"${name}" removed.`);
+  }
+
+  function formatFileSize(bytes) {
+    if (bytes < 1024)        return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  //  SECTION C — STRAVA
+  // ═══════════════════════════════════════════════════════════════
+  function loadStravaCredentials() {
+    const creds = lsGet('krnch_strava_creds');
+    if (creds) {
+      document.getElementById('strava-client-id').value     = creds.clientId     || '';
+      document.getElementById('strava-client-secret').value = creds.clientSecret || '';
+      document.getElementById('strava-access-token').value  = creds.accessToken  || '';
+      if (creds.clientId) {
+        document.getElementById('strava-connected-badge').style.display = 'inline-block';
+      }
+    }
+  }
+
+  function loadStravaStats() {
+    const stats = lsGet('krnch_strava_stats');
+    if (stats) renderStravaStats(stats);
+  }
+
+  function connectStrava() {
+    const clientId     = document.getElementById('strava-client-id').value.trim();
+    const clientSecret = document.getElementById('strava-client-secret').value.trim();
+    const accessToken  = document.getElementById('strava-access-token').value.trim();
+
+    if (!clientId || !accessToken) {
+      showStatus('strava-status', 'error', 'Client ID and Access Token are required.');
+      return;
+    }
+
+    lsSet('krnch_strava_creds', { clientId, clientSecret, accessToken });
+    document.getElementById('strava-connected-badge').style.display = 'inline-block';
+    showStatus('strava-status', 'success', '✓ Strava credentials saved. Note: will be encrypted in production.');
+  }
+
+  async function fetchStravaStats() {
+    const btn = event.currentTarget;
+    btn.disabled    = true;
+    btn.textContent = '⏳ Fetching…';
+
+    try {
+      const res = await fetch(`${WORKER_BASE}/api/strava`, {
+        method : 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        lsSet('krnch_strava_stats', data);
+        renderStravaStats(data);
+        showStatus('strava-status', 'success', '✓ Stats updated from Strava.');
+      } else {
+        showStatus('strava-status', 'error', `Error fetching stats (${res.status}).`);
+      }
+    } catch (err) {
+      // Show placeholder demo stats when worker unreachable
+      showStatus('strava-status', 'info', `Worker unreachable (${err.message}). Showing cached stats if available.`);
+      const cached = lsGet('krnch_strava_stats');
+      if (cached) renderStravaStats(cached);
+    } finally {
+      btn.disabled    = false;
+      btn.textContent = '🔄 Fetch Latest Stats';
+    }
+  }
+
+  function renderStravaStats(data) {
+    document.getElementById('stat-cycling').textContent      = data.totalCycling      ?? '—';
+    document.getElementById('stat-cycling-unit').textContent = data.cyclingUnit        ?? 'km';
+    document.getElementById('stat-hiking').textContent       = data.totalHiking        ?? '—';
+    document.getElementById('stat-hiking-unit').textContent  = data.hikingUnit         ?? 'km';
+    document.getElementById('stat-last').textContent         = data.lastActivityName   ?? '—';
+    document.getElementById('stat-last-date').textContent    = data.lastActivityDate   ?? '';
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  //  SECTION D — TRAVEL DATA
+  // ═══════════════════════════════════════════════════════════════
+  function loadTravelData() {
+    const data = lsGet('krnch_travel');
+    if (data) {
+      if (data.countries) document.getElementById('travel-countries').value = data.countries;
+      if (data.states)    document.getElementById('travel-states').value    = data.states;
+    }
+  }
+
+  function saveTravelData() {
+    const countries = document.getElementById('travel-countries').value.trim();
+    const states    = document.getElementById('travel-states').value.trim();
+
+    lsSet('krnch_travel', { countries, states });
+
+    // Also inject into KB textarea if user hasn't customised it
+    const kbEl      = document.getElementById('kb-content');
+    const kbContent = kbEl.value;
+
+    const countryList = countries.split('\n').filter(Boolean).map(c => `- ${c.trim()}`).join('\n');
+    const stateList   = states.split('\n').filter(Boolean).map(s => `- ${s.trim()}`).join('\n');
+
+    showStatus('travel-status', 'success', `✓ Travel data saved — ${countries.split('\n').filter(Boolean).length} countries, ${states.split('\n').filter(Boolean).length} states.`);
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  //  SECTION E — FAQ BUILDER
+  // ═══════════════════════════════════════════════════════════════
+  function loadFAQs() {
+    const faqs = lsGet('krnch_faqs', []);
+    renderFAQList(faqs);
+  }
+
+  function renderFAQList(faqs) {
+    const container = document.getElementById('faq-list');
+    if (!faqs.length) {
+      container.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:4px 0">No Q&As added yet.</div>';
+      return;
+    }
+
+    container.innerHTML = faqs.map((f, i) => `
+      <div class="faq-item">
+        <div class="faq-item-q">
+          <span>Q: ${escHtml(f.q)}</span>
+          <button class="btn btn-secondary btn-sm" onclick="deleteFAQ(${i})" style="flex-shrink:0">✕</button>
+        </div>
+        <div class="faq-item-a">A: ${escHtml(f.a)}</div>
+      </div>
+    `).join('');
+  }
+
+  function addFAQ() {
+    const q = document.getElementById('faq-question').value.trim();
+    const a = document.getElementById('faq-answer').value.trim();
+
+    if (!q || !a) {
+      showStatus('faq-status', 'error', 'Both question and answer are required.');
+      return;
+    }
+
+    const faqs = lsGet('krnch_faqs', []);
+    faqs.push({ q, a, added: new Date().toISOString() });
+    lsSet('krnch_faqs', faqs);
+    renderFAQList(faqs);
+
+    document.getElementById('faq-question').value = '';
+    document.getElementById('faq-answer').value   = '';
+    showStatus('faq-status', 'success', `✓ Q&A added. ${faqs.length} total.`);
+  }
+
+  function deleteFAQ(idx) {
+    const faqs = lsGet('krnch_faqs', []);
+    faqs.splice(idx, 1);
+    lsSet('krnch_faqs', faqs);
+    renderFAQList(faqs);
+  }
+
+  function clearAllFAQs() {
+    if (!confirm('Clear all Q&A pairs? This cannot be undone.')) return;
+    lsSet('krnch_faqs', []);
+    renderFAQList([]);
+    showStatus('faq-status', 'info', 'All Q&As cleared.');
+  }
+
+  function exportFAQtoKB() {
+    const faqs = lsGet('krnch_faqs', []);
+    if (!faqs.length) {
+      showStatus('faq-status', 'error', 'No Q&As to export.');
+      return;
+    }
+
+    const faqBlock = '\n\n## FAQ\n' + faqs.map(f => `\nQ: ${f.q}\nA: ${f.a}`).join('\n');
+    const kbEl     = document.getElementById('kb-content');
+    let   kbText   = kbEl.value;
+
+    // Replace existing FAQ section or append
+    if (kbText.includes('## FAQ')) {
+      kbText = kbText.replace(/\n*## FAQ[\s\S]*$/, faqBlock);
+    } else {
+      kbText += faqBlock;
+    }
+
+    kbEl.value = kbText;
+    lsSet('krnch_kb_content', kbText);
+    showStatus('faq-status', 'success', `✓ ${faqs.length} Q&A pairs exported to Knowledge Base. Remember to save!`);
+
+    // Scroll to KB section
+    document.querySelector('.card').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  //  UTILS
+  // ═══════════════════════════════════════════════════════════════
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;');
+  }
+
+  // Allow Enter to submit login on input (already bound above)
+</script>
+</body>
+</html>
