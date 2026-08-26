@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<!--
+  Ask Karan — Chat Widget
+  Drop this entire file's <style> + <div> + <script> blocks into your index.html before </body>
+  Replace WORKER_URL below with your actual Cloudflare Worker URL after deploying.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ask Karan — Widget Preview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+</head>
+<body style="background:#f8fafc;font-family:Inter,sans-serif;">
+  <p style="text-align:center;padding:2rem;color:#64748b;">↘ Chat widget is bottom-right</p>
+
+<!-- ═══════════════════════════════════════════════════
+     PASTE EVERYTHING BELOW INTO YOUR index.html
+     (before the closing </body> tag)
+     ═══════════════════════════════════════════════════ -->
+
+<style>
+  /* ── Variables ── */
+  :root {
+    --chat-accent: #0ea5e9;
+    --chat-accent-dark: #0284c7;
+    --chat-bg: #ffffff;
+    --chat-surface: #f8fafc;
+    --chat-border: #e2e8f0;
+    --chat-text: #0f172a;
+    --chat-muted: #64748b;
+    --chat-user-bg: #0ea5e9;
+    --chat-user-text: #ffffff;
+    --chat-bot-bg: #f1f5f9;
+    --chat-bot-text: #0f172a;
+    --chat-radius: 16px;
+    --chat-shadow: 0 20px 60px rgba(0,0,0,0.15), 0 4px 16px rgba(0,0,0,0.1);
+  }
+
+  /* ── Bubble button ── */
+  #krnch-chat-bubble {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--chat-accent);
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    padding: 14px 20px;
+    font-family: Inter, sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 24px rgba(14,165,233,0.4);
+    transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+    white-space: nowrap;
+  }
+  #krnch-chat-bubble:hover {
+    background: var(--chat-accent-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(14,165,233,0.5);
+  }
+  #krnch-chat-bubble .bubble-icon { font-size: 20px; }
+
+  /* ── Chat panel ── */
+  #krnch-chat-panel {
+    position: fixed;
+    bottom: 90px;
+    right: 24px;
+    width: 350px;
+    height: 500px;
+    background: var(--chat-bg);
+    border-radius: var(--chat-radius);
+    box-shadow: var(--chat-shadow);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 9998;
+    font-family: Inter, sans-serif;
+    border: 1px solid var(--chat-border);
+    transform: scale(0.95) translateY(10px);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), opacity 0.2s ease;
+  }
+  #krnch-chat-panel.open {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  /* Mobile: full screen */
+  @media (max-width: 480px) {
+    #krnch-chat-panel {
+      bottom: 0; right: 0; left: 0; top: 0;
+      width: 100%; height: 100%;
+      border-radius: 0;
+    }
+    #krnch-chat-bubble { bottom: 16px; right: 16px; }
+  }
+
+  /* ── Header ── */
+  #krnch-chat-header {
+    background: var(--chat-accent);
+    color: #fff;
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  .chat-avatar {
+    width: 38px; height: 38px;
+    background: rgba(255,255,255,0.25);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+  }
+  .chat-header-info { flex: 1; }
+  .chat-header-name { font-weight: 600; font-size: 15px; }
+  .chat-header-sub { font-size: 12px; opacity: 0.85; margin-top: 1px; }
+  #krnch-chat-close {
+    background: none; border: none; color: #fff;
+    font-size: 22px; cursor: pointer; padding: 2px 4px;
+    line-height: 1; opacity: 0.85; transition: opacity 0.15s;
+  }
+  #krnch-chat-close:hover { opacity: 1; }
+
+  /* ── Messages ── */
+  #krnch-chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    scroll-behavior: smooth;
+  }
+  #krnch-chat-messages::-webkit-scrollbar { width: 4px; }
+  #krnch-chat-messages::-webkit-scrollbar-track { background: transparent; }
+  #krnch-chat-messages::-webkit-scrollbar-thumb { background: var(--chat-border); border-radius: 4px; }
+
+  .chat-msg {
+    display: flex;
+    flex-direction: column;
+    max-width: 85%;
+    animation: msgIn 0.2s ease;
+  }
+  @keyframes msgIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .chat-msg.user { align-self: flex-end; align-items: flex-end; }
+  .chat-msg.bot  { align-self: flex-start; align-items: flex-start; }
+
+  .chat-bubble {
+    padding: 10px 14px;
+    border-radius: 14px;
+    font-size: 14px;
+    line-height: 1.55;
+    word-break: break-word;
+  }
+  .chat-msg.user .chat-bubble {
+    background: var(--chat-user-bg);
+    color: var(--chat-user-text);
+    border-bottom-right-radius: 4px;
+  }
+  .chat-msg.bot .chat-bubble {
+    background: var(--chat-bot-bg);
+    color: var(--chat-bot-text);
+    border-bottom-left-radius: 4px;
+  }
+  .chat-bubble ul { margin: 6px 0 0 0; padding-left: 18px; }
+  .chat-bubble li { margin-bottom: 3px; }
+
+  /* ── Suggestions ── */
+  #krnch-suggestions {
+    padding: 4px 16px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+  .suggestion-btn {
+    background: var(--chat-surface);
+    border: 1px solid var(--chat-border);
+    border-radius: 20px;
+    padding: 8px 14px;
+    font-family: Inter, sans-serif;
+    font-size: 13px;
+    color: var(--chat-accent);
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.15s, border-color 0.15s;
+    font-weight: 500;
+  }
+  .suggestion-btn:hover {
+    background: #e0f2fe;
+    border-color: var(--chat-accent);
+  }
+
+  /* ── Typing indicator ── */
+  .typing-indicator {
+    display: flex; align-items: center; gap: 4px;
+    padding: 10px 14px;
+    background: var(--chat-bot-bg);
+    border-radius: 14px;
+    border-bottom-left-radius: 4px;
+    width: fit-content;
+  }
+  .typing-dot {
+    width: 7px; height: 7px;
+    background: var(--chat-muted);
+    border-radius: 50%;
+    animation: typingBounce 1.2s infinite;
+  }
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes typingBounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+    30% { transform: translateY(-5px); opacity: 1; }
+  }
+
+  /* ── Input area ── */
+  #krnch-chat-input-area {
+    border-top: 1px solid var(--chat-border);
+    padding: 12px 14px;
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+    flex-shrink: 0;
+    background: var(--chat-bg);
+  }
+  #krnch-chat-input {
+    flex: 1;
+    border: 1px solid var(--chat-border);
+    border-radius: 22px;
+    padding: 10px 16px;
+    font-family: Inter, sans-serif;
+    font-size: 14px;
+    color: var(--chat-text);
+    background: var(--chat-surface);
+    resize: none;
+    outline: none;
+    max-height: 100px;
+    line-height: 1.4;
+    transition: border-color 0.15s;
+  }
+  #krnch-chat-input:focus { border-color: var(--chat-accent); }
+  #krnch-chat-input::placeholder { color: var(--chat-muted); }
+
+  #krnch-send-btn {
+    width: 38px; height: 38px;
+    background: var(--chat-accent);
+    border: none; border-radius: 50%;
+    color: #fff; font-size: 18px;
+    cursor: pointer; display: flex;
+    align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.15s, transform 0.15s;
+  }
+  #krnch-send-btn:hover { background: var(--chat-accent-dark); transform: scale(1.05); }
+  #krnch-send-btn:disabled { background: var(--chat-border); cursor: not-allowed; transform: none; }
+
+  /* ── Footer ── */
+  #krnch-chat-footer {
+    text-align: center;
+    padding: 6px 0 8px;
+    font-size: 11px;
+    color: var(--chat-muted);
+    border-top: 1px solid var(--chat-border);
+    flex-shrink: 0;
+  }
+  #krnch-chat-footer a { color: var(--chat-muted); text-decoration: none; }
+</style>
+
+<!-- Bubble button -->
+<button id="krnch-chat-bubble" aria-label="Open chat">
+  <span class="bubble-icon">💬</span>
+  <span>Ask about Karan</span>
+</button>
+
+<!-- Chat panel -->
+<div id="krnch-chat-panel" role="dialog" aria-label="Chat with Karan's AI assistant">
+
+  <!-- Header -->
+  <div id="krnch-chat-header">
+    <div class="chat-avatar">🤖</div>
+    <div class="chat-header-info">
+      <div class="chat-header-name">Ask Karan</div>
+      <div class="chat-header-sub">AI portfolio assistant · usually instant</div>
+    </div>
+    <button id="krnch-chat-close" aria-label="Close chat">×</button>
+  </div>
+
+  <!-- Messages -->
+  <div id="krnch-chat-messages" role="log" aria-live="polite"></div>
+
+  <!-- Suggested questions -->
+  <div id="krnch-suggestions">
+    <button class="suggestion-btn" data-q="What has Karan worked on at Microsoft?">
+      💼 What has Karan worked on at Microsoft?
+    </button>
+    <button class="suggestion-btn" data-q="What hobby projects has Karan built?">
+      🛠 What hobby projects has Karan built?
+    </button>
+    <button class="suggestion-btn" data-q="Is Karan open to new opportunities?">
+      📬 Is Karan open to new opportunities?
+    </button>
+  </div>
+
+  <!-- Input -->
+  <div id="krnch-chat-input-area">
+    <textarea
+      id="krnch-chat-input"
+      placeholder="Ask anything about Karan…"
+      rows="1"
+      maxlength="1000"
+      aria-label="Your message"
+    ></textarea>
+    <button id="krnch-send-btn" aria-label="Send message">➤</button>
+  </div>
+
+  <!-- Footer -->
+  <div id="krnch-chat-footer">
+    Powered by <a href="https://deepmind.google/technologies/gemini/" target="_blank" rel="noopener">Gemini</a>
+  </div>
+</div>
+
+<script>
+(function () {
+  // ── Config — replace with your actual worker URL after deploying ──
+  const WORKER_URL = "https://krnch-chatbot.ACCOUNT.workers.dev";
+  const MAX_MESSAGES = 20;
+
+  // ── State ──
+  let isOpen = false;
+  let isLoading = false;
+  let messageCount = 0;
+  const history = []; // [{role: "user"|"model", content: string}]
+  let suggestionsShown = true;
+
+  // ── Elements ──
+  const bubble     = document.getElementById("krnch-chat-bubble");
+  const panel      = document.getElementById("krnch-chat-panel");
+  const closeBtn   = document.getElementById("krnch-chat-close");
+  const messages   = document.getElementById("krnch-chat-messages");
+  const suggestions= document.getElementById("krnch-suggestions");
+  const input      = document.getElementById("krnch-chat-input");
+  const sendBtn    = document.getElementById("krnch-send-btn");
+
+  // ── Open / close ──
+  bubble.addEventListener("click", () => togglePanel(true));
+  closeBtn.addEventListener("click", () => togglePanel(false));
+
+  function togglePanel(open) {
+    isOpen = open;
+    panel.classList.toggle("open", open);
+    if (open) {
+      // Show greeting on first open
+      if (messages.children.length === 0) {
+        addBotMessage("Hi! 👋 I'm Karan's AI assistant. Ask me anything about his work, projects, or background.");
+      }
+      input.focus();
+    }
+  }
+
+  // ── Suggestions ──
+  document.querySelectorAll(".suggestion-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const q = btn.dataset.q;
+      hideSuggestions();
+      sendMessage(q);
+    });
+  });
+
+  function hideSuggestions() {
+    if (suggestionsShown) {
+      suggestions.style.display = "none";
+      suggestionsShown = false;
+    }
+  }
+
+  // ── Input auto-resize ──
+  input.addEventListener("input", () => {
+    input.style.height = "auto";
+    input.style.height = Math.min(input.scrollHeight, 100) + "px";
+  });
+
+  // ── Send on Enter (Shift+Enter = newline) ──
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  });
+  sendBtn.addEventListener("click", handleSend);
+
+  function handleSend() {
+    const text = input.value.trim();
+    if (!text || isLoading) return;
+    input.value = "";
+    input.style.height = "auto";
+    hideSuggestions();
+    sendMessage(text);
+  }
+
+  // ── Send message ──
+  async function sendMessage(text) {
+    if (messageCount >= MAX_MESSAGES) {
+      addBotMessage("You've reached the session limit (20 messages). Please refresh the page to start a new conversation!");
+      return;
+    }
+
+    addUserMessage(text);
+    const typingEl = addTypingIndicator();
+    setLoading(true);
+
+    try {
+      const response = await fetch(`${WORKER_URL}/api/chat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Message-Count": String(messageCount),
+        },
+        body: JSON.stringify({ message: text, history }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || `HTTP ${response.status}`);
+      }
+
+      // Update history
+      history.push({ role: "user", content: text });
+      history.push({ role: "model", content: data.reply });
+      messageCount++;
+
+      removeTypingIndicator(typingEl);
+      addBotMessage(data.reply);
+    } catch (err) {
+      removeTypingIndicator(typingEl);
+      addBotMessage("Sorry, I'm having trouble connecting right now. Try again in a moment, or email Karan directly at karan.chaudhari@nyu.edu.");
+      console.error("[krnch-chat]", err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // ── DOM helpers ──
+  function addUserMessage(text) {
+    const el = createMsg("user", escapeHtml(text));
+    messages.appendChild(el);
+    scrollToBottom();
+  }
+
+  function addBotMessage(text) {
+    // Simple markdown-ish: convert **bold**, bullet lines
+    const formatted = formatBotText(text);
+    const el = createMsg("bot", formatted);
+    messages.appendChild(el);
+    scrollToBottom();
+  }
+
+  function createMsg(role, html) {
+    const wrapper = document.createElement("div");
+    wrapper.className = `chat-msg ${role}`;
+    const bubble = document.createElement("div");
+    bubble.className = "chat-bubble";
+    bubble.innerHTML = html;
+    wrapper.appendChild(bubble);
+    return wrapper;
+  }
+
+  function addTypingIndicator() {
+    const wrapper = document.createElement("div");
+    wrapper.className = "chat-msg bot";
+    wrapper.innerHTML = `<div class="typing-indicator">
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+    </div>`;
+    messages.appendChild(wrapper);
+    scrollToBottom();
+    return wrapper;
+  }
+
+  function removeTypingIndicator(el) {
+    if (el && el.parentNode) el.parentNode.removeChild(el);
+  }
+
+  function setLoading(val) {
+    isLoading = val;
+    sendBtn.disabled = val;
+    input.disabled = val;
+  }
+
+  function scrollToBottom() {
+    messages.scrollTop = messages.scrollHeight;
+  }
+
+  function escapeHtml(str) {
+    return str
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function formatBotText(text) {
+    // Escape first, then apply formatting
+    let html = escapeHtml(text);
+    // Bold: **text**
+    html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+    // Bullet lines starting with - or •
+    const lines = html.split("\n");
+    let inList = false;
+    const out = [];
+    for (const line of lines) {
+      const bulletMatch = line.match(/^[-•]\s+(.+)/);
+      if (bulletMatch) {
+        if (!inList) { out.push("<ul>"); inList = true; }
+        out.push(`<li>${bulletMatch[1]}</li>`);
+      } else {
+        if (inList) { out.push("</ul>"); inList = false; }
+        if (line.trim()) out.push(`<p style="margin:0 0 4px 0">${line}</p>`);
+      }
+    }
+    if (inList) out.push("</ul>");
+    return out.join("");
+  }
+
+  // Close panel when clicking outside
+  document.addEventListener("click", (e) => {
+    if (isOpen && !panel.contains(e.target) && e.target !== bubble && !bubble.contains(e.target)) {
+      togglePanel(false);
+    }
+  });
+
+  // Keyboard: Escape to close
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && isOpen) togglePanel(false);
+  });
+})();
+</script>
+
+<!-- ═══════════════════════════════════════════════════
+     END OF CHAT WIDGET — paste above into index.html
+     ═══════════════════════════════════════════════════ -->
+
+</body>
+</html>

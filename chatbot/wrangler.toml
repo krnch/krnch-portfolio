@@ -1,0 +1,10 @@
+name = "krnch-chatbot"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+[vars]
+ALLOWED_ORIGIN = "https://krnch.me"
+
+# GEMINI_API_KEY must be set as a secret, NOT here.
+# Run: wrangler secret put GEMINI_API_KEY
+# Get a free key at: https://aistudio.google.com
