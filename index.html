@@ -3,15 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- Google Analytics -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-PLACEHOLDER"></script>
+  <!-- Google Analytics — only loads if a real GA ID is set below (replace G-XXXXXXXXXX). -->
   <script>
+    // Set your real Measurement ID here (from analytics.google.com) to enable tracking.
+    window.GA_ID = ""; // e.g. "G-ABC1234567"
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-PLACEHOLDER');
-
-    // Track resume clicks
+    if (window.GA_ID) {
+      var s = document.createElement('script');
+      s.async = true;
+      s.src = 'https://www.googletagmanager.com/gtag/js?id=' + window.GA_ID;
+      document.head.appendChild(s);
+      gtag('js', new Date());
+      gtag('config', window.GA_ID);
+    }
+    // Track resume clicks (no-ops gracefully until GA_ID is set)
     function trackResume() {
       gtag('event', 'resume_download', {
         'event_category': 'engagement',
