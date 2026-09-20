@@ -12,6 +12,21 @@ As verified on 2026-09-20:
 
 This is a DNS/hosting mismatch. Buying another domain or moving the registration to GoDaddy does not fix it. Until cutover completes, use **Go Back** on browser certificate warnings; do not bypass them.
 
+## Why this is not a Namecheap-specific failure
+
+Namecheap is currently acting as the **registrar and DNS host**. It publishes the records configured for the domain; it does not choose which certificate GitHub or Azure serves. The warning occurs because those DNS records still direct visitors to the old GitHub Pages endpoint, while that endpoint is not serving a certificate valid for `krnch.me`.
+
+Moving the same domain to GoDaddy would not fix the certificate. If the same old DNS records were copied there, the same mismatch would continue. Conversely, correcting the DNS at Namecheap and completing Azure custom-domain validation is enough—there is no need to purchase hosting, a website package, or another domain from GoDaddy.
+
+These are separate layers:
+
+1. **Registrar** — Namecheap records who owns `krnch.me`.
+2. **Authoritative DNS** — currently Namecheap publishes where each hostname points.
+3. **Hosting/origin** — Azure Static Web Apps serves the portfolio.
+4. **TLS certificate** — Azure issues it only after proving control of the hostname through DNS.
+
+Cloudflare could later replace Namecheap only as the authoritative DNS/CDN while Namecheap remains the registrar, but that is optional and should be a separate migration after Azure TLS is working.
+
 ## Target
 
 - Static site: `green-pebble-099281a10.7.azurestaticapps.net`
