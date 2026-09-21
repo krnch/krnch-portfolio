@@ -426,18 +426,20 @@
       gap: 10px;
     }
     .exp-list li {
-      display: flex;
-      gap: 10px;
+      position: relative;
+      padding-left: 20px;
       color: var(--text2);
       font-size: 0.925rem;
       line-height: 1.65;
+      overflow-wrap: anywhere;
     }
     .exp-list li::before {
       content: '→';
+      position: absolute;
+      left: 0;
+      top: 1px;
       color: var(--accent);
       font-weight: 700;
-      flex-shrink: 0;
-      margin-top: 1px;
     }
 
     .exp-highlight {
