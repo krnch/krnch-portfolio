@@ -1,0 +1,6 @@
+.public-site/
+.copilot-azure/
+node_modules/
+.env
+.env.*
+!.env.example

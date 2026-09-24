@@ -1,0 +1,11 @@
+# Free public portfolio deployment
+
+The public-only package is produced by `node scripts/prepare-public-site.mjs` into `.public-site/`. It contains `index.html`, `hobby.html`, `resume.pdf` and a Free-compatible Azure configuration. No dependencies or Docker installation are required. The packager refuses an existing output directory to prevent stale deployment files.
+
+All original sources remain in Git. The admin prototype, browser credential-entry forms and optional Cloudflare Worker are deliberately not published. Admin/API/chatbot paths and both built-in provider login routes return 404. Azure's platform `/.auth/me` remains available with a null anonymous principal; it is not an application backend. Exact provider login routes are required to block sign-in, rather than only a wildcard. Do not enter secrets into the old browser-storage admin prototype.
+
+The prepared workflow publishes only `.public-site` with no API location or Oryx compilation. PRs validate packaging without deployment secrets; deployment is restricted to main-branch pushes or main-branch manual runs. Actions are pinned to verified commits. Setup is still pending: create the replacement Free app, store its token as `AZURE_STATIC_WEB_APPS_API_TOKEN_PERSONALWEBSITES`, enable Actions if needed and obtain explicit workflow-PR merge approval. Use repository `krnch/krnch-portfolio`, branch `main`.
+
+The new app must use **Free** Static Web Apps in `personalwebsites`. No database, paid monitoring, VM or other hosting services are required. The initial deployment is accessible only through its own public Azure-generated hostname. No changes to `krnch.me`, its registrar, or existing DNS are part of this task. Some existing navigation links still lead to `krnch.me`; preserving them does not mean that domain has been migrated.
+
+Verified replacement URL: **https://wonderful-forest-0e862f510.2.azurestaticapps.net**. Resource `swa-personalwebsites-prod-karan-c561`, resource group `rg-personalwebsites-prod-c561`, Central US, Free tier in `personalwebsites`. Live content matches the source for the portfolio, hobby page and PDF; all 22 content/security checks passed. No existing custom domain has been moved.
